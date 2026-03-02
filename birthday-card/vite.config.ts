@@ -4,5 +4,17 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: process.env.GITHUB_PAGES ? '/juliannalove/' : '/',
+  base: process.env.GITHUB_PAGES === '1' ? '/juliannalove/' : '/',
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    minify: 'esbuild',
+  },
+  // Для корректной работы с GH Pages
+  resolve: {
+    alias: {
+      '@': '/src',
+    },
+  },
 })

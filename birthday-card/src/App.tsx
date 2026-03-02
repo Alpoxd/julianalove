@@ -1,503 +1,542 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Play, Pause, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { motion, AnimatePresence, useScroll } from 'framer-motion'
+import confetti from 'canvas-confetti'
+import { Heart, MessageCircle, Music, ChevronDown, Sparkles, Gift, Camera } from 'lucide-react'
+import './App.css'
 
-// ============================================
-// 📸 ФОТОГРАФИИ: положи в папку public/ 
-//    и используй так: /my-photo.jpg
-//    Пример: '/photo1.jpg', '/photo2.jpg'
-// ============================================
-const PHOTOS = [
-  '/photo1.jpg',  // Замени на свои фото
-  '/photo2.jpg',
-  '/photo3.jpg',
-];
+// Типы для сообщений чата
+interface Message {
+  id: number
+  text: string
+  sender: 'me' | 'her'
+  time: string
+}
 
-// ============================================
-// 🎵 ГОЛОСОВОЕ: положи в public/ 
-//    и укажи название файла
-// ============================================
-const VOICE_MESSAGE = '/voice.mp3';  // Замени на свой файл
+// Сообщения чата (история знакомства)
+const chatMessages: Message[] = [
+  { id: 1, text: 'Привет! Я увидел тебя в парке и не смог пройти мимо 😊', sender: 'me', time: '14:32' },
+  { id: 2, text: 'Ого, это было смело! А что понравилось?', sender: 'her', time: '14:35' },
+  { id: 3, text: 'У тебя такие красивые глаза, не смог забыть', sender: 'me', time: '14:36' },
+  { id: 4, text: 'Ты такой романтик 😳 А давай встретимся?', sender: 'her', time: '14:38' },
+  { id: 5, text: 'Я бы очень хотел! Как насчёт субботы в том же парке?', sender: 'me', time: '14:40' },
+  { id: 6, text: 'Договорились! Жду тебя в 15:00', sender: 'her', time: '14:42' },
+]
 
-// Цвета
-const COLORS = {
-  gradient: 'linear-gradient(135deg, #fff0f3 0%, #ffe4e9 50%, #fff0f5 100%)',
-  card: 'rgba(255, 255, 255, 0.85)',
-  primary: '#ff6b9d',
-  primaryLight: '#ffaec9',
-  primaryDark: '#e84a7f',
-  text: '#4a4a4a',
-  textLight: '#7a7a7a',
-  accent: '#ff8fab',
-};
+// Фотографии с первого свидания (заглушки - замени на свои)
+const datePhotos = [
+  'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=400&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=400&h=400&fit=crop',
+]
 
-// Плавающие сердечки для фона
-const FloatingHearts: React.FC = () => {
-  const hearts = useMemo(() => 
-    Array.from({ length: 15 }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      delay: Math.random() * 10,
-      size: Math.random() * 20 + 15,
-      duration: Math.random() * 8 + 12,
-    })), []
-  );
+// Генерация псевдослучайных чисел с затравкой для согласованности
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000
+  return x - Math.floor(x)
+}
 
+// Конфигурация сердечек (генерируется при импорте)
+const heartConfigs = Array.from({ length: 20 }, (_, i) => ({
+  id: i,
+  x: seededRandom(i * 7) * 100,
+  startRotate: seededRandom(i * 13) * 360,
+  endRotate: seededRandom(i * 17) * 360 + 360,
+  duration: 8 + seededRandom(i * 19) * 8,
+  delay: seededRandom(i * 23) * 10,
+  opacity: 0.3 + seededRandom(i * 29) * 0.5,
+  fontSize: 16 + seededRandom(i * 31) * 24
+}))
+
+// Конфигурация фотографий
+const photoConfigs = datePhotos.map((_, i) => ({
+  id: i,
+  initialRotate: -5 + seededRandom(i * 37) * 10
+}))
+
+// Анимированные сердечки на фоне
+function FloatingHearts() {
   return (
-    <div style={styles.floatingHearts}>
-      {hearts.map((heart) => (
+    <div className="floating-hearts">
+      {heartConfigs.map((heart) => (
         <motion.div
           key={heart.id}
-          style={{
-            ...styles.floatingHeart,
-            left: `${heart.left}%`,
-            width: heart.size,
-            height: heart.size,
+          className="floating-heart"
+          initial={{ 
+            x: `${heart.x}%`, 
+            y: '110%',
+            scale: 0,
+            rotate: heart.startRotate
           }}
-          initial={{ y: '110vh', opacity: 0, scale: 0 }}
           animate={{ 
-            y: '-10vh', 
-            opacity: [0, 0.8, 0],
-            scale: [0, 1, 0.8],
-            rotate: [0, 15, -15, 0],
+            y: '-10%',
+            scale: [0, 1, 1, 0],
+            rotate: heart.endRotate
           }}
-          transition={{
-            duration: heart.duration,
-            delay: heart.delay,
+          transition={{ 
+            duration: heart.duration, 
             repeat: Infinity,
-            ease: 'linear',
+            delay: heart.delay,
+            ease: 'linear'
+          }}
+          style={{
+            left: `${heart.x}%`,
+            opacity: heart.opacity,
+            fontSize: `${heart.fontSize}px`
           }}
         >
-          <Heart fill={COLORS.primary} color={COLORS.primary} />
+          ❤️
         </motion.div>
       ))}
     </div>
-  );
-};
+  )
+}
 
-// Пузырьки на фоне
-const Bubbles: React.FC = () => {
-  const bubbles = useMemo(() =>
-    Array.from({ length: 8 }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      delay: Math.random() * 5,
-      size: Math.random() * 40 + 20,
-      duration: Math.random() * 10 + 15,
-    })), []
-  );
-
-  return (
-    <div style={styles.bubbles}>
-      {bubbles.map((bubble) => (
-        <motion.div
-          key={bubble.id}
-          style={{
-            ...styles.bubble,
-            left: `${bubble.left}%`,
-            width: bubble.size,
-            height: bubble.size,
-          }}
-          initial={{ y: '110vh', opacity: 0 }}
-          animate={{ 
-            y: '-20vh',
-            opacity: [0, 0.3, 0],
-          }}
-          transition={{
-            duration: bubble.duration,
-            delay: bubble.delay,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
-const App: React.FC = () => {
-  const [currentPhoto, setCurrentPhoto] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [showContent, setShowContent] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Запуск конфетти при загрузке
+// Секция 1: Главное поздравление
+function HeroSection({ onNext }: { onNext: () => void }) {
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const duration = 3000
+    const end = Date.now() + duration
+
+    const frame = () => {
       confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: [COLORS.primary, COLORS.primaryLight, COLORS.accent, '#ffd700']
-      });
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#ffb6c1', '#ffc0cb', '#ff69b4', '#ff1493']
+      })
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#ffb6c1', '#ffc0cb', '#ff69b4', '#ff1493']
+      })
 
-  // Показ контента с задержкой
-  useEffect(() => {
-    const timer = setTimeout(() => setShowContent(true), 300);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const toggleAudio = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play().catch(() => {});
+      if (Date.now() < end) {
+        requestAnimationFrame(frame)
       }
-      setIsPlaying(!isPlaying);
     }
-  };
-
-  const nextPhoto = () => setCurrentPhoto((prev) => (prev + 1) % PHOTOS.length);
-  const prevPhoto = () => setCurrentPhoto((prev) => (prev - 1 + PHOTOS.length) % PHOTOS.length);
+    frame()
+  }, [])
 
   return (
-    <div style={styles.container}>
-      {/* Анимированный фон */}
+    <section className="section hero-section">
       <FloatingHearts />
-      <Bubbles />
       
-      {/* Слой с градиентом поверх фона */}
-      <div style={styles.gradientOverlay} />
-
-      {/* Аудио */}
-      <audio ref={audioRef} src={VOICE_MESSAGE} preload="metadata" />
-
-      <AnimatePresence>
-        {showContent && (
+      <motion.div
+        className="hero-content"
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+      >
+        <motion.div
+          animate={{ 
+            scale: [1, 1.1, 1],
+            rotate: [0, 5, -5, 0]
+          }}
+          transition={{ 
+            duration: 2,
+            repeat: Infinity,
+            ease: 'easeInOut'
+          }}
+          className="hero-heart"
+        >
+          <Heart size={80} fill="#ff1493" color="#ff1493" />
+        </motion.div>
+        
+        <motion.h1
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="hero-title"
+        >
+          С Днём Рождения!
+        </motion.h1>
+        
+        <motion.p
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="hero-subtitle"
+        >
+          Моя любимая Юлианночка ❤️
+        </motion.p>
+        
+        <motion.p
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="hero-text"
+        >
+          Сегодня твой день — и я хочу, чтобы он был самым особенным!
+          Ты делаешь мою жизнь ярче каждый день.
+        </motion.p>
+        
+        <motion.button
+          className="scroll-hint"
+          onClick={onNext}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <span>Листай вниз</span>
           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            style={styles.card}
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
           >
-            {/* Header с именем */}
-            <motion.header 
-              style={styles.header}
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <motion.div
-                animate={{ 
-                  scale: [1, 1.15, 1],
-                  rotate: [0, 5, -5, 0],
-                }}
-                transition={{ 
-                  repeat: Infinity, 
-                  duration: 2,
-                  ease: 'easeInOut'
-                }}
-                style={styles.heartIcon}
-              >
-                <Heart fill={COLORS.primary} color={COLORS.primary} size={36} />
-              </motion.div>
-              
-              <motion.h1 
-                style={styles.title}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                С Днём Рождения!
-              </motion.h1>
-              
-              <motion.p
-                style={styles.name}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-              >
-                Юлианночка ❤️
-              </motion.p>
-            </motion.header>
-
-            {/* Фото слайдер */}
-            <motion.div 
-              style={styles.sliderContainer}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-            >
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={currentPhoto}
-                  src={PHOTOS[currentPhoto]}
-                  alt={`Фото ${currentPhoto + 1}`}
-                  initial={{ x: 80, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: -80, opacity: 0 }}
-                  transition={{ duration: 0.35, ease: 'easeOut' }}
-                  style={styles.image}
-                />
-              </AnimatePresence>
-              
-              {/* Навигация */}
-              <motion.button
-                onClick={prevPhoto}
-                style={{ ...styles.navBtn, left: 12 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <ChevronLeft size={22} color={COLORS.primary} />
-              </motion.button>
-              
-              <motion.button
-                onClick={nextPhoto}
-                style={{ ...styles.navBtn, right: 12 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <ChevronRight size={22} color={COLORS.primary} />
-              </motion.button>
-
-              {/* Индикаторы */}
-              <div style={styles.dots}>
-                {PHOTOS.map((_, idx) => (
-                  <motion.div
-                    key={idx}
-                    style={{
-                      ...styles.dot,
-                      backgroundColor: idx === currentPhoto ? COLORS.primary : 'rgba(255,107,157,0.3)',
-                    }}
-                    animate={{ scale: idx === currentPhoto ? 1.2 : 1 }}
-                  />
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Основной контент */}
-            <motion.div 
-              style={styles.content}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
-            >
-              <div style={styles.messageBox}>
-                <Sparkles size={18} color={COLORS.primary} />
-                <p style={styles.message}>
-                  Ты — самое прекрасное, что случилось в моей жизни. 
-                  Каждый день с тобой — это подарок. Я так счастлив, что ты есть! 
-                  Желаю тебе исполнения всех желаний, ярких эмоций и бесконечной любви. 
-                  Ты заслуживаешь самого лучшего! ✨
-                </p>
-                <Sparkles size={18} color={COLORS.primary} />
-              </div>
-
-              {/* Кнопка аудио */}
-              <motion.button
-                onClick={toggleAudio}
-                style={styles.audioButton}
-                whileHover={{ scale: 1.02, boxShadow: '0 12px 30px rgba(255,107,157,0.4)' }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {isPlaying ? (
-                  <>
-                    <Pause size={20} />
-                    <span>Пауза</span>
-                  </>
-                ) : (
-                  <>
-                    <Play size={20} />
-                    <span>Послушать голосовое</span>
-                  </>
-                )}
-              </motion.button>
-            </motion.div>
-
-            {/* Footer */}
-            <motion.footer 
-              style={styles.footer}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.9 }}
-            >
-              <span style={styles.footerText}>Люблю тебя бесконечно ❤️</span>
-            </motion.footer>
+            <ChevronDown size={24} />
           </motion.div>
-        )}
+        </motion.button>
+      </motion.div>
+    </section>
+  )
+}
+
+// Секция 2: Чат знакомства
+function ChatSection({ visible }: { visible: boolean }) {
+  const [displayedMessages, setDisplayedMessages] = useState<Message[]>([])
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (visible) {
+      let currentIndex = 0
+      const interval = setInterval(() => {
+        if (currentIndex < chatMessages.length) {
+          setDisplayedMessages(chatMessages.slice(0, currentIndex + 1))
+          currentIndex++
+        } else {
+          clearInterval(interval)
+        }
+      }, 1500)
+      
+      return () => clearInterval(interval)
+    }
+  }, [visible])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [displayedMessages])
+
+  if (!visible) return null
+
+  return (
+    <section className="section chat-section">
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="section-header"
+      >
+        <MessageCircle size={28} color="#ff69b4" />
+        <h2>Как всё началось...</h2>
+      </motion.div>
+      
+      <div className="chat-container">
+        <div className="chat-messages">
+          {displayedMessages.map((msg) => (
+            <motion.div
+              key={msg.id}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              className={`chat-message ${msg.sender}`}
+            >
+              <div className="message-bubble">
+                {msg.text}
+                <span className="message-time">{msg.time}</span>
+              </div>
+            </motion.div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// Секция 3: Фотографии
+function PhotosSection({ visible }: { visible: boolean }) {
+  if (!visible) return null
+
+  return (
+    <section className="section photos-section">
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="section-header"
+      >
+        <Camera size={28} color="#ff69b4" />
+        <h2>Наше первое свидание</h2>
+      </motion.div>
+      
+      <div className="photos-grid">
+        {datePhotos.map((photo, i) => (
+          <motion.div
+            key={photoConfigs[i].id}
+            className="photo-card"
+            initial={{ scale: 0.8, opacity: 0, rotate: photoConfigs[i].initialRotate }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            transition={{ delay: 0.2 + i * 0.2, type: 'spring' }}
+            whileHover={{ scale: 1.05, rotate: 0 }}
+          >
+            <img src={photo} alt={`Фото ${i + 1}`} />
+            <div className="photo-frame" />
+          </motion.div>
+        ))}
+      </div>
+      
+      <motion.p 
+        className="photo-caption"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+      >
+        Лучший день в моей жизни ❤️
+      </motion.p>
+    </section>
+  )
+}
+
+// Секция 4: Видео подводка
+function VideoSection({ visible }: { visible: boolean }) {
+  if (!visible) return null
+
+  return (
+    <section className="section video-section">
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="section-header"
+      >
+        <Music size={28} color="#ff69b4" />
+        <h2>Мой подарок для тебя</h2>
+      </motion.div>
+      
+      <motion.div
+        className="video-container"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        <div className="video-preview">
+          <motion.div
+            className="guitar-icon"
+            animate={{ 
+              rotate: [-5, 5, -5],
+              scale: [1, 1.05, 1]
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut'
+            }}
+          >
+            <Music size={60} color="#ff1493" />
+          </motion.div>
+          
+          <p className="video-text">
+            Я выучил песню специально для тебя...
+          </p>
+          
+          <motion.button
+            className="play-button"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Sparkles size={20} />
+            <span>Смотреть видео</span>
+          </motion.button>
+        </div>
+        
+        <div className="hearts-decoration">
+          {[...Array(10)].map((_, i) => (
+            <motion.span
+              key={i}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ 
+                opacity: [0, 1, 0],
+                scale: [0, 1, 0],
+                y: [0, -100]
+              }}
+              transition={{
+                duration: 2,
+                delay: i * 0.3,
+                repeat: Infinity
+              }}
+              style={{
+                left: `${10 + i * 8}%`,
+                position: 'absolute'
+              }}
+            >
+              ❤️
+            </motion.span>
+          ))}
+        </div>
+      </motion.div>
+      
+      <motion.div
+        className="final-message"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5 }}
+      >
+        <Heart size={32} fill="#ff1493" color="#ff1493" />
+        <p>Я люблю тебя больше всего на свете!</p>
+        <p>С наилучшими пожеланиями,</p>
+        <p className="signature">Твой единственный ❤️</p>
+      </motion.div>
+    </section>
+  )
+}
+
+// Тип для Web NFC API
+interface NDEFReader {
+  scan(): Promise<void>
+  onreading: ((event: Event) => void) | null
+}
+
+// NFC Prompt компонент
+function NFCPrompt({ onComplete }: { onComplete: () => void }) {
+  const [scanned, setScanned] = useState(false)
+
+  useEffect(() => {
+    // Проверяем поддержку Web NFC API
+    if ('NDEFReader' in window) {
+      const ndef = new (window as unknown as { NDEFReader: new () => NDEFReader }).NDEFReader()
+      
+      ndef.scan().then(() => {
+        ndef.onreading = () => {
+          setScanned(true)
+          setTimeout(onComplete, 1500)
+        }
+      }).catch(() => {
+        // NFC не доступен или отклонён
+        setTimeout(onComplete, 1000)
+      })
+    } else {
+      // NFC не поддерживается - сразу показываем поздравление
+      setTimeout(onComplete, 500)
+    }
+  }, [onComplete])
+
+  return (
+    <motion.div
+      className="nfc-prompt"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, scale: 1.1 }}
+    >
+      <motion.div
+        animate={{ 
+          scale: [1, 1.2, 1],
+          rotate: [0, 10, -10, 0]
+        }}
+        transition={{ duration: 2, repeat: Infinity }}
+      >
+        <Gift size={80} color="#ff1493" />
+      </motion.div>
+      
+      <motion.h2
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        {scanned ? 'Отлично! 🎉' : 'Поднеси телефон к NFC метке'}
+      </motion.h2>
+      
+      <motion.p
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        {scanned 
+          ? 'Загрузка твоего сюрприза...' 
+          : 'Приготовься к незабываемому моменту ❤️'}
+      </motion.p>
+      
+      {!scanned && (
+        <motion.div
+          className="nfc-animation"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+        >
+          <div className="nfc-ring" />
+          <div className="nfc-ring delay-1" />
+          <div className="nfc-ring delay-2" />
+        </motion.div>
+      )}
+    </motion.div>
+  )
+}
+
+// Главное приложение
+export default function App() {
+  const [currentSection, setCurrentSection] = useState(0)
+  const [started, setStarted] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useScroll({
+    target: containerRef,
+    offset: ['start start', 'end end']
+  })
+
+  // Отслеживаем текущую секцию по скроллу
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY
+      const windowHeight = window.innerHeight
+      const newSection = Math.round(scrollPosition / windowHeight)
+      setCurrentSection(Math.min(newSection, 3))
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const scrollToSection = useCallback((section: number) => {
+    window.scrollTo({
+      top: section * window.innerHeight,
+      behavior: 'smooth'
+    })
+  }, [])
+
+  if (!started) {
+    return (
+      <AnimatePresence>
+        <NFCPrompt onComplete={() => setStarted(true)} />
       </AnimatePresence>
+    )
+  }
+
+  return (
+    <div className="app" ref={containerRef}>
+      <HeroSection onNext={() => scrollToSection(1)} />
+      <ChatSection visible={currentSection >= 1} />
+      <PhotosSection visible={currentSection >= 2} />
+      <VideoSection visible={currentSection >= 3} />
+      
+      {/* Индикатор прогресса */}
+      <div className="progress-indicator">
+        {[0, 1, 2, 3].map((section) => (
+          <button
+            key={section}
+            className={`progress-dot ${currentSection >= section ? 'active' : ''}`}
+            onClick={() => scrollToSection(section)}
+            aria-label={`Перейти к секции ${section + 1}`}
+          >
+            {section === 0 && <Heart size={14} />}
+            {section === 1 && <MessageCircle size={14} />}
+            {section === 2 && <Camera size={14} />}
+            {section === 3 && <Music size={14} />}
+          </button>
+        ))}
+      </div>
     </div>
-  );
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    position: 'relative',
-    minHeight: '100vh',
-    width: '100%',
-    overflow: 'hidden',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 'env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 20px) 16px',
-  },
-  gradientOverlay: {
-    position: 'absolute',
-    inset: 0,
-    background: COLORS.gradient,
-    zIndex: 0,
-  },
-  floatingHearts: {
-    position: 'absolute',
-    inset: 0,
-    overflow: 'hidden',
-    pointerEvents: 'none',
-    zIndex: 1,
-  },
-  floatingHeart: {
-    position: 'absolute',
-    bottom: 0,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bubbles: {
-    position: 'absolute',
-    inset: 0,
-    overflow: 'hidden',
-    pointerEvents: 'none',
-    zIndex: 1,
-  },
-  bubble: {
-    position: 'absolute',
-    bottom: 0,
-    borderRadius: '50%',
-    background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(255,174,201,0.3))',
-    backdropFilter: 'blur(2px)',
-  },
-  card: {
-    position: 'relative',
-    zIndex: 10,
-    width: '100%',
-    maxWidth: '360px',
-    background: COLORS.card,
-    borderRadius: '32px',
-    boxShadow: '0 25px 80px rgba(255,107,157,0.2), 0 10px 40px rgba(0,0,0,0.08)',
-    overflow: 'hidden',
-    backdropFilter: 'blur(20px)',
-  },
-  header: {
-    padding: '28px 20px 16px',
-    textAlign: 'center',
-  },
-  heartIcon: {
-    display: 'flex',
-    justifyContent: 'center',
-    marginBottom: '8px',
-  },
-  title: {
-    fontSize: '28px',
-    fontWeight: '800',
-    color: COLORS.text,
-    margin: 0,
-    letterSpacing: '-0.5px',
-    background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryDark} 100%)`,
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-  },
-  name: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: COLORS.primary,
-    margin: '8px 0 0',
-  },
-  sliderContainer: {
-    position: 'relative',
-    height: '320px',
-    margin: '0 16px',
-    borderRadius: '24px',
-    overflow: 'hidden',
-    boxShadow: '0 15px 40px rgba(255,107,157,0.2)',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    backgroundColor: COLORS.primaryLight,
-  },
-  navBtn: {
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    background: 'rgba(255,255,255,0.9)',
-    border: 'none',
-    borderRadius: '50%',
-    width: '40px',
-    height: '40px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-    zIndex: 5,
-  },
-  dots: {
-    position: 'absolute',
-    bottom: '12px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    display: 'flex',
-    gap: '6px',
-  },
-  dot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    transition: 'all 0.3s ease',
-  },
-  content: {
-    padding: '20px',
-  },
-  messageBox: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '16px',
-    background: 'linear-gradient(135deg, rgba(255,174,201,0.2) 0%, rgba(255,143,171,0.15) 100%)',
-    borderRadius: '20px',
-    marginBottom: '16px',
-  },
-  message: {
-    fontSize: '15px',
-    lineHeight: '1.6',
-    color: COLORS.text,
-    margin: 0,
-    flex: 1,
-    textAlign: 'center',
-  },
-  audioButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '10px',
-    width: '100%',
-    padding: '16px 20px',
-    borderRadius: '18px',
-    border: 'none',
-    background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryDark} 100%)`,
-    color: 'white',
-    fontSize: '16px',
-    fontWeight: '600',
-    boxShadow: '0 10px 30px rgba(255,107,157,0.35)',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-  },
-  footer: {
-    padding: '16px 20px 24px',
-    textAlign: 'center',
-  },
-  footerText: {
-    fontSize: '15px',
-    fontWeight: '600',
-    color: COLORS.primary,
-    letterSpacing: '0.5px',
-  },
-};
-
-export default App;
+  )
+}
