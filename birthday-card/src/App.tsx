@@ -4,7 +4,6 @@ import confetti from 'canvas-confetti'
 import { Heart, MessageCircle, Music, ChevronDown, Sparkles, Gift, Camera, ChevronLeft, ChevronRight } from 'lucide-react'
 import './App.css'
 
-// Компонент для плавного появления при скролле
 function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(false)
@@ -38,7 +37,6 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
   )
 }
 
-// Типы для сообщений чата
 interface Message {
   id: number
   text: string
@@ -46,7 +44,6 @@ interface Message {
   time: string
 }
 
-// Сообщения чата (история знакомства)
 const chatMessages: Message[] = [
   { id: 1, text: 'привет, Юлианна мой музыкальный вкус можно назвать раздачей кринжа, есть ли у нас в этом метч?', sender: 'me', time: '16:18' },
   { id: 2, text: 'Да! Топ пять песен профессора Лебединского', sender: 'her', time: '16:21' },
@@ -59,29 +56,24 @@ const chatMessages: Message[] = [
   { id: 9, text: 'это можем устроить) завтра вечером на черной речке, например. я так-то тоже люблю погулять и пофоткать красивые места и людей', sender: 'me', time: '22:37' },
 ]
 
-// Фотографии с первого свидания (заглушки - замени на свои)
 const datePhotos = [
-  '/s1_1.jpg',
-  '/s1_2.jpg',
-  '/s1_3.jpg',
-  '/s2_1.jpg',
-  '/s3_1.jpg',
-  '/s3_2.jpg',
-  '/s3_3.jpg',
-  '/s3_4.jpg',
-  '/s3_5.jpg',
-  '/s4_1.jpg',
-  '/s4_2.jpg',
-  '/s4_3.jpg',
+  'https://i.imgur.com/5TDxA14.jpeg',
+  'https://i.imgur.com/VQj2Byz.jpeg',
+  'https://i.imgur.com/SnQpi3D.jpeg',
+  'https://i.imgur.com/x6nEM8P.jpeg',
+  'https://i.imgur.com/ZgvHCKj.jpeg',
+  'https://i.imgur.com/cYrOOwD.jpeg',
+  'https://i.imgur.com/yfQ20zf.jpeg',
+  'https://i.imgur.com/onsLP0a.jpeg',
+  'https://i.imgur.com/SRD3cjH.jpeg',
+  'https://i.imgur.com/6uCl0Tx.jpeg',
 ]
 
-// Генерация псевдослучайных чисел с затравкой для согласованности
 function seededRandom(seed: number): number {
   const x = Math.sin(seed) * 10000
   return x - Math.floor(x)
 }
 
-// Конфигурация сердечек (генерируется при импорте) - падающие сверху вниз
 const heartConfigs = Array.from({ length: 30 }, (_, i) => ({
   id: i,
   left: seededRandom(i * 7) * 100,
@@ -92,7 +84,6 @@ const heartConfigs = Array.from({ length: 30 }, (_, i) => ({
   rotate: seededRandom(i * 23) * 40 - 20,
 }))
 
-// Анимированные сердечки - падающие сверху вниз как снег
 function FloatingHearts() {
   return (
     <div className="floating-hearts">
@@ -135,7 +126,6 @@ function FloatingHearts() {
   )
 }
 
-// Секция 1: Главное поздравление
 function HeroSection({ onNext }: { onNext: () => void }) {
   const confettiFired = useRef(false)
 
@@ -200,7 +190,7 @@ function HeroSection({ onNext }: { onNext: () => void }) {
         <FadeIn delay={0.3}>
           <p className="hero-text">
             Сегодня твой день — и я хочу, чтобы он был самым особенным!
-            Ты делаешь мою жизнь ярче каждый день.
+            Ты словно солнышко, делаешь мою жизнь ярче.
           </p>
         </FadeIn>
           
@@ -225,15 +215,7 @@ function HeroSection({ onNext }: { onNext: () => void }) {
   )
 }
 
-// Секция 2: Чат знакомства
 function ChatSection() {
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 300)
-    return () => clearTimeout(timer)
-  }, [])
-
   return (
     <motion.section 
       className="section chat-section"
@@ -244,31 +226,34 @@ function ChatSection() {
     >
       <motion.div
         initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.6 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.2, duration: 0.6 }}
         className="section-header"
       >
         <MessageCircle size={28} color="#ff69b4" />
         <h2>Как всё началось...</h2>
       </motion.div>
       
-      <motion.div 
+      <motion.div
         className="chat-container"
         initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.6 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.3, duration: 0.6 }}
       >
         <div className="chat-messages">
           {chatMessages.map((msg, index) => (
             <motion.div
               key={msg.id}
               initial={{ scale: 0.8, opacity: 0, x: msg.sender === 'me' ? 50 : -50 }}
-              animate={{ scale: 1, opacity: 1, x: 0 }}
-              transition={{ 
+              whileInView={{ scale: 1, opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.5 }}
+              transition={{
                 type: 'spring', 
                 stiffness: 280, 
                 damping: 22, 
-                delay: 0.7 + index * 0.2 
+                delay: index * 0.15
               }}
               className={`chat-message ${msg.sender}`}
             >
@@ -284,19 +269,25 @@ function ChatSection() {
   )
 }
 
-// Секция 3: Фотографии с горизонтальным перелистыванием
 function PhotosSection() {
   const [currentPhoto, setCurrentPhoto] = useState(0)
+  const [isAnimating, setIsAnimating] = useState(false)
   const touchStartX = useRef(0)
   const touchEndX = useRef(0)
 
   const nextPhoto = useCallback(() => {
+    if (isAnimating) return
+    setIsAnimating(true)
     setCurrentPhoto((prev) => (prev + 1) % datePhotos.length)
-  }, [])
+    setTimeout(() => setIsAnimating(false), 400)
+  }, [isAnimating])
 
   const prevPhoto = useCallback(() => {
+    if (isAnimating) return
+    setIsAnimating(true)
     setCurrentPhoto((prev) => (prev - 1 + datePhotos.length) % datePhotos.length)
-  }, [])
+    setTimeout(() => setIsAnimating(false), 400)
+  }, [isAnimating])
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
@@ -335,7 +326,7 @@ function PhotosSection() {
         className="section-header"
       >
         <Camera size={28} color="#ff69b4" />
-        <h2>Наше первое свидание</h2>
+        <h2>Счастливое время, проведенное вместе</h2>
       </motion.div>
       
       <motion.div
@@ -357,6 +348,7 @@ function PhotosSection() {
             aria-label="Предыдущее фото"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
+            disabled={isAnimating}
           >
             <ChevronLeft size={28} />
           </motion.button>
@@ -371,7 +363,7 @@ function PhotosSection() {
                 initial={{ opacity: 0, x: 100 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -100 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
               />
             </AnimatePresence>
           </div>
@@ -382,6 +374,7 @@ function PhotosSection() {
             aria-label="Следующее фото"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
+            disabled={isAnimating}
           >
             <ChevronRight size={28} />
           </motion.button>
@@ -392,7 +385,13 @@ function PhotosSection() {
             <button
               key={i}
               className={`carousel-dot ${i === currentPhoto ? 'active' : ''}`}
-              onClick={() => setCurrentPhoto(i)}
+              onClick={() => {
+                if (!isAnimating) {
+                  setIsAnimating(true)
+                  setCurrentPhoto(i)
+                  setTimeout(() => setIsAnimating(false), 400)
+                }
+              }}
               aria-label={`Фото ${i + 1}`}
             />
           ))}
@@ -406,14 +405,16 @@ function PhotosSection() {
         viewport={{ once: true }}
         transition={{ delay: 0.8 }}
       >
-        Лучший день в моей жизни ❤️
       </motion.p>
     </motion.section>
   )
 }
 
-// Секция 4: Видео подводка
+const VIDEO_SRC = 'https://www.youtube.com/embed/yRNXTUrlgeM?rel=0&modestbranding=1&playsinline=1'
+
 function VideoSection() {
+  const [showVideo, setShowVideo] = useState(false)
+
   return (
     <motion.section 
       className="section video-section"
@@ -439,35 +440,73 @@ function VideoSection() {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
-        <div className="video-preview">
+        {!showVideo ? (
+          <div className="video-preview">
+            <motion.div
+              className="guitar-icon"
+              animate={{ 
+                rotate: [-5, 5, -5],
+                scale: [1, 1.05, 1]
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: 'easeInOut'
+              }}
+            >
+              <Music size={60} color="#ff1493" />
+            </motion.div>
+            
+            <p className="video-text">
+              Мелодия для тебя...
+            </p>
+            
+            <motion.button
+              className="play-button"
+              onClick={() => setShowVideo(true)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Sparkles size={20} />
+              <span>Смотреть видео</span>
+            </motion.button>
+          </div>
+        ) : (
           <motion.div
-            className="guitar-icon"
-            animate={{ 
-              rotate: [-5, 5, -5],
-              scale: [1, 1.05, 1]
-            }}
-            transition={{ 
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut'
-            }}
+            className="video-player"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
           >
-            <Music size={60} color="#ff1493" />
+            {VIDEO_SRC.includes('youtube.com') || VIDEO_SRC.includes('youtu.be') ? (
+              <iframe
+                src={VIDEO_SRC}
+                title="Видео"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="video-iframe"
+              />
+            ) : (
+              <video
+                src={VIDEO_SRC}
+                controls
+                autoPlay
+                className="video-element"
+                playsInline
+              />
+            )}
+            
+            <motion.button
+              className="close-video-btn"
+              onClick={() => setShowVideo(false)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              ← Назад
+            </motion.button>
           </motion.div>
-          
-          <p className="video-text">
-            Я выучил песню специально для тебя...
-          </p>
-          
-          <motion.button
-            className="play-button"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Sparkles size={20} />
-            <span>Смотреть видео</span>
-          </motion.button>
-        </div>
+        )}
         
         <div className="hearts-decoration">
           {[...Array(10)].map((_, i) => (
@@ -503,26 +542,23 @@ function VideoSection() {
         transition={{ delay: 0.8 }}
       >
         <Heart size={32} fill="#ff1493" color="#ff1493" />
-        <p>Я люблю тебя больше всего на свете!</p>
+        <p>Люблю тебя, зайка!</p>
         <p>С наилучшими пожеланиями,</p>
-        <p className="signature">Твой единственный ❤️</p>
+        <p className="signature">Сашка :3</p>
       </motion.div>
     </motion.section>
   )
 }
 
-// Тип для Web NFC API
 interface NDEFReader {
   scan(): Promise<void>
   onreading: ((event: Event) => void) | null
 }
 
-// NFC Prompt компонент
 function NFCPrompt({ onComplete }: { onComplete: () => void }) {
   const [scanned, setScanned] = useState(false)
 
   useEffect(() => {
-    // Проверяем поддержку Web NFC API
     if ('NDEFReader' in window) {
       const ndef = new (window as unknown as { NDEFReader: new () => NDEFReader }).NDEFReader()
       
@@ -532,11 +568,9 @@ function NFCPrompt({ onComplete }: { onComplete: () => void }) {
           setTimeout(onComplete, 1500)
         }
       }).catch(() => {
-        // NFC не доступен или отклонён
         setTimeout(onComplete, 1000)
       })
     } else {
-      // NFC не поддерживается - сразу показываем поздравление
       setTimeout(onComplete, 500)
     }
   }, [onComplete])
@@ -563,7 +597,7 @@ function NFCPrompt({ onComplete }: { onComplete: () => void }) {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
-        {scanned ? 'Отлично! 🎉' : 'Поднеси телефон к NFC метке'}
+        {scanned ? 'Отлично!' : 'Поднеси телефон к NFC метке'}
       </motion.h2>
       
       <motion.p
@@ -571,9 +605,6 @@ function NFCPrompt({ onComplete }: { onComplete: () => void }) {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
-        {scanned 
-          ? 'Загрузка твоего сюрприза...' 
-          : 'Приготовься к незабываемому моменту ❤️'}
       </motion.p>
       
       {!scanned && (
@@ -592,7 +623,6 @@ function NFCPrompt({ onComplete }: { onComplete: () => void }) {
   )
 }
 
-// Главное приложение
 export default function App() {
   const [currentSection, setCurrentSection] = useState(0)
   const [started, setStarted] = useState(false)
@@ -603,7 +633,6 @@ export default function App() {
     offset: ['start start', 'end end']
   })
 
-  // Отслеживаем текущую секцию по скроллу (только для индикатора)
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY
@@ -633,7 +662,6 @@ export default function App() {
 
   return (
     <div className="app" ref={containerRef}>
-      {/* Фон на всех секциях */}
       <FloatingHearts />
       
       <HeroSection onNext={() => scrollToSection(1)} />
@@ -641,7 +669,6 @@ export default function App() {
       <PhotosSection />
       <VideoSection />
       
-      {/* Индикатор прогресса */}
       <div className="progress-indicator">
         {[0, 1, 2, 3].map((section) => (
           <button
