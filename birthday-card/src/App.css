@@ -2,6 +2,7 @@
 .app {
   min-height: 400vh;
   position: relative;
+  width: 100%;
 }
 
 /* Секции */
@@ -13,16 +14,18 @@
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
+  padding-bottom: 4rem;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* Floating Hearts - анимированный фон */
+/* Floating Hearts - фиксированный фон на всю страницу */
 .floating-hearts {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
+  width: 100vw;
   height: 100%;
   pointer-events: none;
   overflow: hidden;
@@ -30,14 +33,13 @@
 }
 
 .floating-heart {
-  position: absolute;
-  bottom: 0;
   will-change: transform, opacity;
+  top: 0;
 }
 
 /* Hero Section */
 .hero-section {
-  background: linear-gradient(135deg, #fff0f3 0%, #ffe4e9 50%, #fff0f5 100%);
+  background: transparent;
 }
 
 .hero-content {
@@ -60,12 +62,16 @@
   color: #ff1493;
   text-shadow: 2px 2px 4px rgba(255, 20, 147, 0.2);
   margin: 0;
+  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.02em;
 }
 
 .hero-subtitle {
   font-size: clamp(1.5rem, 4vw, 2rem);
   color: #ff69b4;
   margin: 0;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 .hero-text {
@@ -74,6 +80,7 @@
   max-width: 400px;
   line-height: 1.6;
   text-align: center;
+  font-weight: 400;
 }
 
 .scroll-hint {
@@ -96,7 +103,10 @@
 
 /* Chat Section */
 .chat-section {
-  background: linear-gradient(180deg, #fff0f5 0%, #ffe4e9 100%);
+  background: transparent;
+  min-height: auto;
+  padding-top: 4rem;
+  padding-bottom: 4rem;
 }
 
 .section-header {
@@ -119,8 +129,7 @@
   border-radius: 24px;
   padding: 1rem;
   box-shadow: 0 10px 40px rgba(255, 20, 147, 0.15);
-  max-height: 60vh;
-  overflow-y: auto;
+  overflow: visible;
 }
 
 .chat-messages {
@@ -172,7 +181,10 @@
 
 /* Photos Section */
 .photos-section {
-  background: linear-gradient(180deg, #ffe4e9 0%, #fff0f3 100%);
+  background: transparent;
+  min-height: auto;
+  padding-top: 4rem;
+  padding-bottom: 4rem;
 }
 
 .photos-grid {
@@ -214,9 +226,97 @@
   font-style: italic;
 }
 
+/* Photos Carousel */
+.photos-carousel {
+  position: relative;
+  width: 100%;
+  max-width: 350px;
+  height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: pan-y pinch-zoom;
+}
+
+.carousel-track {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.carousel-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 20px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #ff1493;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s, background 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.carousel-btn:active {
+  transform: translateY(-50%) scale(0.95);
+  background: white;
+}
+
+.carousel-btn-left {
+  left: 10px;
+}
+
+.carousel-btn-right {
+  right: 10px;
+}
+
+.carousel-dots {
+  display: flex;
+  gap: 8px;
+  margin-top: 1rem;
+}
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: #ccc;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 0;
+}
+
+.carousel-dot.active {
+  background: #ff1493;
+  transform: scale(1.3);
+}
+
 /* Video Section */
 .video-section {
-  background: linear-gradient(180deg, #fff0f3 0%, #fff5f8 100%);
+  background: transparent;
+  min-height: auto;
+  padding-top: 4rem;
+  padding-bottom: 4rem;
 }
 
 .video-container {
@@ -308,7 +408,7 @@
 /* Progress Indicator */
 .progress-indicator {
   position: fixed;
-  right: 1rem;
+  right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -318,23 +418,31 @@
 }
 
 .progress-dot {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
   border-radius: 50%;
   border: 2px solid #ff69b4;
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s;
   color: #ff69b4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.progress-dot svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .progress-dot.active {
   background: #ff1493;
   color: white;
-  transform: scale(1.1);
+  border-color: #ff1493;
 }
 
 .progress-dot:hover {
@@ -406,19 +514,26 @@
 @media (max-width: 480px) {
   .section {
     padding: 1rem 0.75rem;
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+    min-height: 100vh;
+    height: auto;
+    min-height: -webkit-fill-available;
   }
   
   .hero-content {
     padding: 1rem;
+    padding-top: max(1rem, env(safe-area-inset-top));
   }
   
   .chat-container {
     border-radius: 16px;
+    margin: 0 0.5rem;
   }
   
-  .photos-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+  .photos-carousel {
+    max-width: 280px;
+    height: 280px;
   }
   
   .progress-indicator {
@@ -428,6 +543,27 @@
   .progress-dot {
     width: 32px;
     height: 32px;
+    min-width: 32px;
+  }
+  
+  .progress-dot svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .video-preview {
+    padding: 2rem 1rem;
+    margin: 0 0.5rem;
+  }
+  
+  .carousel-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .carousel-btn svg {
+    width: 20px;
+    height: 20px;
   }
 }
 

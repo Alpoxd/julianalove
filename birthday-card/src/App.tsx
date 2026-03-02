@@ -1,8 +1,42 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence, useScroll } from 'framer-motion'
 import confetti from 'canvas-confetti'
-import { Heart, MessageCircle, Music, ChevronDown, Sparkles, Gift, Camera } from 'lucide-react'
+import { Heart, MessageCircle, Music, ChevronDown, Sparkles, Gift, Camera, ChevronLeft, ChevronRight } from 'lucide-react'
 import './App.css'
+
+// Компонент для плавного появления при скролле
+function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+        }
+      },
+      { threshold: 0.2 }
+    )
+
+    if (ref.current) {
+      observer.observe(ref.current)
+    }
+
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+      transition={{ duration: 0.6, delay, ease: 'easeOut' }}
+    >
+      {children}
+    </motion.div>
+  )
+}
 
 // Типы для сообщений чата
 interface Message {
@@ -14,19 +48,31 @@ interface Message {
 
 // Сообщения чата (история знакомства)
 const chatMessages: Message[] = [
-  { id: 1, text: 'Привет! Я увидел тебя в парке и не смог пройти мимо 😊', sender: 'me', time: '14:32' },
-  { id: 2, text: 'Ого, это было смело! А что понравилось?', sender: 'her', time: '14:35' },
-  { id: 3, text: 'У тебя такие красивые глаза, не смог забыть', sender: 'me', time: '14:36' },
-  { id: 4, text: 'Ты такой романтик 😳 А давай встретимся?', sender: 'her', time: '14:38' },
-  { id: 5, text: 'Я бы очень хотел! Как насчёт субботы в том же парке?', sender: 'me', time: '14:40' },
-  { id: 6, text: 'Договорились! Жду тебя в 15:00', sender: 'her', time: '14:42' },
+  { id: 1, text: 'привет, Юлианна мой музыкальный вкус можно назвать раздачей кринжа, есть ли у нас в этом метч?', sender: 'me', time: '16:18' },
+  { id: 2, text: 'Да! Топ пять песен профессора Лебединского', sender: 'her', time: '16:21' },
+  { id: 3, text: 'только что впервые его послушал) интересный у него тембр ахаххахаах учат в школе по тексту дико рейвит', sender: 'me', time: '16:31' },
+  { id: 4, text: 'Моя любимая я убью тебя лодочник Душераздирающая песня', sender: 'her', time: '16:32' },
+  { id: 5, text: 'подставил лодочник добряка с гранатой...😢', sender: 'me', time: '16:52' },
+  { id: 6, text: '...', sender: 'her', time: '' },
+  { id: 7, text: '...', sender: 'me', time: '' },
+  { id: 8, text: 'Пора разнообразить твою жизнь Прогулкой по самым знаменитым мостам Очень люблю ходить и рассматривать архитектуру, звучит душновато, но я обычно хожу так посмотреть полюбоваться одна', sender: 'her', time: '22:30' },
+  { id: 9, text: 'это можем устроить) завтра вечером на черной речке, например. я так-то тоже люблю погулять и пофоткать красивые места и людей', sender: 'me', time: '22:37' },
 ]
 
 // Фотографии с первого свидания (заглушки - замени на свои)
 const datePhotos = [
-  'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=400&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=400&h=400&fit=crop',
+  '/s1_1.jpg',
+  '/s1_2.jpg',
+  '/s1_3.jpg',
+  '/s2_1.jpg',
+  '/s3_1.jpg',
+  '/s3_2.jpg',
+  '/s3_3.jpg',
+  '/s3_4.jpg',
+  '/s3_5.jpg',
+  '/s4_1.jpg',
+  '/s4_2.jpg',
+  '/s4_3.jpg',
 ]
 
 // Генерация псевдослучайных чисел с затравкой для согласованности
@@ -35,25 +81,18 @@ function seededRandom(seed: number): number {
   return x - Math.floor(x)
 }
 
-// Конфигурация сердечек (генерируется при импорте)
-const heartConfigs = Array.from({ length: 20 }, (_, i) => ({
+// Конфигурация сердечек (генерируется при импорте) - падающие сверху вниз
+const heartConfigs = Array.from({ length: 30 }, (_, i) => ({
   id: i,
-  x: seededRandom(i * 7) * 100,
-  startRotate: seededRandom(i * 13) * 360,
-  endRotate: seededRandom(i * 17) * 360 + 360,
-  duration: 8 + seededRandom(i * 19) * 8,
-  delay: seededRandom(i * 23) * 10,
-  opacity: 0.3 + seededRandom(i * 29) * 0.5,
-  fontSize: 16 + seededRandom(i * 31) * 24
+  left: seededRandom(i * 7) * 100,
+  duration: 8 + seededRandom(i * 11) * 12,
+  delay: seededRandom(i * 13) * 20,
+  opacity: 0.3 + seededRandom(i * 17) * 0.5,
+  size: 14 + seededRandom(i * 19) * 22,
+  rotate: seededRandom(i * 23) * 40 - 20,
 }))
 
-// Конфигурация фотографий
-const photoConfigs = datePhotos.map((_, i) => ({
-  id: i,
-  initialRotate: -5 + seededRandom(i * 37) * 10
-}))
-
-// Анимированные сердечки на фоне
+// Анимированные сердечки - падающие сверху вниз как снег
 function FloatingHearts() {
   return (
     <div className="floating-hearts">
@@ -62,15 +101,15 @@ function FloatingHearts() {
           key={heart.id}
           className="floating-heart"
           initial={{ 
-            x: `${heart.x}%`, 
-            y: '110%',
-            scale: 0,
-            rotate: heart.startRotate
+            x: 0,
+            y: '-50px',
+            opacity: 0,
+            rotate: heart.rotate
           }}
           animate={{ 
-            y: '-10%',
-            scale: [0, 1, 1, 0],
-            rotate: heart.endRotate
+            y: '110vh',
+            opacity: [0, heart.opacity, heart.opacity, 0],
+            rotate: [heart.rotate, heart.rotate + 20, heart.rotate - 20, heart.rotate]
           }}
           transition={{ 
             duration: heart.duration, 
@@ -79,12 +118,17 @@ function FloatingHearts() {
             ease: 'linear'
           }}
           style={{
-            left: `${heart.x}%`,
-            opacity: heart.opacity,
-            fontSize: `${heart.fontSize}px`
+            position: 'absolute',
+            left: `${heart.left}%`,
+            willChange: 'transform, opacity'
           }}
         >
-          ❤️
+          <Heart 
+            size={heart.size} 
+            fill="#ff69b4" 
+            color="#ff69b4"
+            style={{ opacity: heart.opacity }}
+          />
         </motion.div>
       ))}
     </div>
@@ -93,7 +137,12 @@ function FloatingHearts() {
 
 // Секция 1: Главное поздравление
 function HeroSection({ onNext }: { onNext: () => void }) {
+  const confettiFired = useRef(false)
+
   useEffect(() => {
+    if (confettiFired.current) return
+    confettiFired.current = true
+
     const duration = 3000
     const end = Date.now() + duration
 
@@ -122,126 +171,105 @@ function HeroSection({ onNext }: { onNext: () => void }) {
 
   return (
     <section className="section hero-section">
-      <FloatingHearts />
-      
-      <motion.div
-        className="hero-content"
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.8, ease: 'easeOut' }}
-      >
-        <motion.div
-          animate={{ 
-            scale: [1, 1.1, 1],
-            rotate: [0, 5, -5, 0]
-          }}
-          transition={{ 
-            duration: 2,
-            repeat: Infinity,
-            ease: 'easeInOut'
-          }}
-          className="hero-heart"
-        >
-          <Heart size={80} fill="#ff1493" color="#ff1493" />
-        </motion.div>
-        
-        <motion.h1
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="hero-title"
-        >
-          С Днём Рождения!
-        </motion.h1>
-        
-        <motion.p
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="hero-subtitle"
-        >
-          Моя любимая Юлианночка ❤️
-        </motion.p>
-        
-        <motion.p
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          className="hero-text"
-        >
-          Сегодня твой день — и я хочу, чтобы он был самым особенным!
-          Ты делаешь мою жизнь ярче каждый день.
-        </motion.p>
-        
-        <motion.button
-          className="scroll-hint"
-          onClick={onNext}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <span>Листай вниз</span>
+      <div className="hero-content">
+        <FadeIn>
           <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
+            animate={{ 
+              scale: [1, 1.1, 1],
+              rotate: [0, 5, -5, 0]
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut'
+            }}
+            className="hero-heart"
           >
-            <ChevronDown size={24} />
+            <Heart size={80} fill="#ff1493" color="#ff1493" />
           </motion.div>
-        </motion.button>
-      </motion.div>
+        </FadeIn>
+          
+        <FadeIn delay={0.1}>
+          <h1 className="hero-title">С Днём Рождения!</h1>
+        </FadeIn>
+        
+        <FadeIn delay={0.2}>
+          <p className="hero-subtitle">Моя любимая Юлианночка ❤️</p>
+        </FadeIn>
+        
+        <FadeIn delay={0.3}>
+          <p className="hero-text">
+            Сегодня твой день — и я хочу, чтобы он был самым особенным!
+            Ты делаешь мою жизнь ярче каждый день.
+          </p>
+        </FadeIn>
+          
+        <FadeIn delay={0.5}>
+          <motion.button
+            className="scroll-hint"
+            onClick={onNext}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span>Листай вниз</span>
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              <ChevronDown size={24} />
+            </motion.div>
+          </motion.button>
+        </FadeIn>
+      </div>
     </section>
   )
 }
 
 // Секция 2: Чат знакомства
-function ChatSection({ visible }: { visible: boolean }) {
-  const [displayedMessages, setDisplayedMessages] = useState<Message[]>([])
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+function ChatSection() {
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    if (visible) {
-      let currentIndex = 0
-      const interval = setInterval(() => {
-        if (currentIndex < chatMessages.length) {
-          setDisplayedMessages(chatMessages.slice(0, currentIndex + 1))
-          currentIndex++
-        } else {
-          clearInterval(interval)
-        }
-      }, 1500)
-      
-      return () => clearInterval(interval)
-    }
-  }, [visible])
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [displayedMessages])
-
-  if (!visible) return null
+    const timer = setTimeout(() => setIsVisible(true), 300)
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
-    <section className="section chat-section">
+    <motion.section 
+      className="section chat-section"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.8 }}
+    >
       <motion.div
-        initial={{ opacity: 0, y: 50 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ delay: 0.3, duration: 0.6 }}
         className="section-header"
       >
         <MessageCircle size={28} color="#ff69b4" />
         <h2>Как всё началось...</h2>
       </motion.div>
       
-      <div className="chat-container">
+      <motion.div 
+        className="chat-container"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.6 }}
+      >
         <div className="chat-messages">
-          {displayedMessages.map((msg) => (
+          {chatMessages.map((msg, index) => (
             <motion.div
               key={msg.id}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              initial={{ scale: 0.8, opacity: 0, x: msg.sender === 'me' ? 50 : -50 }}
+              animate={{ scale: 1, opacity: 1, x: 0 }}
+              transition={{ 
+                type: 'spring', 
+                stiffness: 280, 
+                damping: 22, 
+                delay: 0.7 + index * 0.2 
+              }}
               className={`chat-message ${msg.sender}`}
             >
               <div className="message-bubble">
@@ -250,67 +278,155 @@ function ChatSection({ visible }: { visible: boolean }) {
               </div>
             </motion.div>
           ))}
-          <div ref={messagesEndRef} />
         </div>
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   )
 }
 
-// Секция 3: Фотографии
-function PhotosSection({ visible }: { visible: boolean }) {
-  if (!visible) return null
+// Секция 3: Фотографии с горизонтальным перелистыванием
+function PhotosSection() {
+  const [currentPhoto, setCurrentPhoto] = useState(0)
+  const touchStartX = useRef(0)
+  const touchEndX = useRef(0)
+
+  const nextPhoto = useCallback(() => {
+    setCurrentPhoto((prev) => (prev + 1) % datePhotos.length)
+  }, [])
+
+  const prevPhoto = useCallback(() => {
+    setCurrentPhoto((prev) => (prev - 1 + datePhotos.length) % datePhotos.length)
+  }, [])
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX
+  }
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        nextPhoto()
+      } else {
+        prevPhoto()
+      }
+    }
+    touchStartX.current = 0
+    touchEndX.current = 0
+  }
 
   return (
-    <section className="section photos-section">
+    <motion.section 
+      className="section photos-section"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.8 }}
+    >
       <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.2, duration: 0.6 }}
         className="section-header"
       >
         <Camera size={28} color="#ff69b4" />
         <h2>Наше первое свидание</h2>
       </motion.div>
       
-      <div className="photos-grid">
-        {datePhotos.map((photo, i) => (
-          <motion.div
-            key={photoConfigs[i].id}
-            className="photo-card"
-            initial={{ scale: 0.8, opacity: 0, rotate: photoConfigs[i].initialRotate }}
-            animate={{ scale: 1, opacity: 1, rotate: 0 }}
-            transition={{ delay: 0.2 + i * 0.2, type: 'spring' }}
-            whileHover={{ scale: 1.05, rotate: 0 }}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.4, duration: 0.6 }}
+        className="photos-carousel-wrapper"
+      >
+        <div 
+          className="photos-carousel"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <motion.button
+            className="carousel-btn carousel-btn-left" 
+            onClick={prevPhoto}
+            aria-label="Предыдущее фото"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <img src={photo} alt={`Фото ${i + 1}`} />
-            <div className="photo-frame" />
-          </motion.div>
-        ))}
-      </div>
+            <ChevronLeft size={28} />
+          </motion.button>
+          
+          <div className="carousel-track">
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={currentPhoto}
+                src={datePhotos[currentPhoto]}
+                alt={`Фото ${currentPhoto + 1}`}
+                className="carousel-photo"
+                initial={{ opacity: 0, x: 100 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -100 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              />
+            </AnimatePresence>
+          </div>
+          
+          <motion.button
+            className="carousel-btn carousel-btn-right" 
+            onClick={nextPhoto}
+            aria-label="Следующее фото"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <ChevronRight size={28} />
+          </motion.button>
+        </div>
+        
+        <div className="carousel-dots">
+          {datePhotos.map((_, i) => (
+            <button
+              key={i}
+              className={`carousel-dot ${i === currentPhoto ? 'active' : ''}`}
+              onClick={() => setCurrentPhoto(i)}
+              aria-label={`Фото ${i + 1}`}
+            />
+          ))}
+        </div>
+      </motion.div>
       
-      <motion.p 
+      <motion.p
         className="photo-caption"
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.8 }}
       >
         Лучший день в моей жизни ❤️
       </motion.p>
-    </section>
+    </motion.section>
   )
 }
 
 // Секция 4: Видео подводка
-function VideoSection({ visible }: { visible: boolean }) {
-  if (!visible) return null
-
+function VideoSection() {
   return (
-    <section className="section video-section">
+    <motion.section 
+      className="section video-section"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.8 }}
+    >
       <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.2, duration: 0.6 }}
         className="section-header"
       >
         <Music size={28} color="#ff69b4" />
@@ -355,7 +471,7 @@ function VideoSection({ visible }: { visible: boolean }) {
         
         <div className="hearts-decoration">
           {[...Array(10)].map((_, i) => (
-            <motion.span
+            <motion.div
               key={i}
               initial={{ opacity: 0, scale: 0 }}
               animate={{ 
@@ -373,8 +489,8 @@ function VideoSection({ visible }: { visible: boolean }) {
                 position: 'absolute'
               }}
             >
-              ❤️
-            </motion.span>
+              <Heart size={16} fill="#ff69b4" color="#ff69b4" />
+            </motion.div>
           ))}
         </div>
       </motion.div>
@@ -382,15 +498,16 @@ function VideoSection({ visible }: { visible: boolean }) {
       <motion.div
         className="final-message"
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.8 }}
       >
         <Heart size={32} fill="#ff1493" color="#ff1493" />
         <p>Я люблю тебя больше всего на свете!</p>
         <p>С наилучшими пожеланиями,</p>
         <p className="signature">Твой единственный ❤️</p>
       </motion.div>
-    </section>
+    </motion.section>
   )
 }
 
@@ -486,7 +603,7 @@ export default function App() {
     offset: ['start start', 'end end']
   })
 
-  // Отслеживаем текущую секцию по скроллу
+  // Отслеживаем текущую секцию по скроллу (только для индикатора)
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY
@@ -516,10 +633,13 @@ export default function App() {
 
   return (
     <div className="app" ref={containerRef}>
+      {/* Фон на всех секциях */}
+      <FloatingHearts />
+      
       <HeroSection onNext={() => scrollToSection(1)} />
-      <ChatSection visible={currentSection >= 1} />
-      <PhotosSection visible={currentSection >= 2} />
-      <VideoSection visible={currentSection >= 3} />
+      <ChatSection />
+      <PhotosSection />
+      <VideoSection />
       
       {/* Индикатор прогресса */}
       <div className="progress-indicator">
