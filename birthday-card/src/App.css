@@ -7,6 +7,7 @@
 
 /* Секции */
 .section {
+  min-height: 100dvh;
   min-height: 100vh;
   width: 100%;
   display: flex;
@@ -18,6 +19,8 @@
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
+  /* iOS Safari */
+  min-height: -webkit-fill-available;
 }
 
 /* Floating Hearts - фиксированный фон на всю страницу */
@@ -298,8 +301,10 @@
 
 .carousel-dots {
   display: flex;
+  justify-content: center;
   gap: 8px;
   margin-top: 1rem;
+  width: 100%;
 }
 
 .carousel-dot {
@@ -561,14 +566,16 @@
     padding: 1rem 0.75rem;
     padding-left: max(0.75rem, env(safe-area-inset-left));
     padding-right: max(0.75rem, env(safe-area-inset-right));
-    min-height: 100vh;
-    height: auto;
+    padding-bottom: max(4rem, env(safe-area-inset-bottom));
+    min-height: 100dvh;
     min-height: -webkit-fill-available;
+    height: auto;
   }
   
   .hero-content {
     padding: 1rem;
     padding-top: max(1rem, env(safe-area-inset-top));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
   
   .chat-container {
@@ -623,6 +630,13 @@
   .carousel-btn svg {
     width: 20px;
     height: 20px;
+  }
+  
+  /* iPhone with Dynamic Island */
+  @supports (padding: max(0px)) {
+    .section {
+      padding-top: max(1rem, env(safe-area-inset-top));
+    }
   }
 }
 

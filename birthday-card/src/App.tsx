@@ -559,20 +559,37 @@ function NFCPrompt({ onComplete }: { onComplete: () => void }) {
   const [scanned, setScanned] = useState(false)
 
   useEffect(() => {
-    if ('NDEFReader' in window) {
-      const ndef = new (window as unknown as { NDEFReader: new () => NDEFReader }).NDEFReader()
-      
-      ndef.scan().then(() => {
-        ndef.onreading = () => {
-          setScanned(true)
-          setTimeout(onComplete, 1500)
-        }
-      }).catch(() => {
-        setTimeout(onComplete, 1000)
-      })
-    } else {
-      setTimeout(onComplete, 500)
+    // Проверка на iOS - NFC не поддерживается
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    
+    // Если iOS или нет поддержки NFC - сразу показываем контент
+    if (isIOS || !('NDEFReader' in window)) {
+      setTimeout(onComplete, 800)
+      return
     }
+
+    // Попытка сканирования NFC (только для Android)
+    const ndef = new (window as unknown as { NDEFReader: new () => NDEFReader }).NDEFReader()
+    
+    ndef.scan().then(() => {
+      ndef.onreading = () => {
+        setScanned(true)
+        setTimeout(onComplete, 1500)
+      }
+    }).catch(() => {
+      // NFC недоступен - показываем контент
+      setTimeout(onComplete, 1000)
+    })
+    
+    // Fallback таймаут на случай зависания
+    const fallbackTimer = setTimeout(() => {
+      if (!scanned) {
+        onComplete()
+      }
+    }, 5000)
+    
+    return () => clearTimeout(fallbackTimer)
   }, [onComplete])
 
   return (
@@ -636,18 +653,24 @@ export default function App() {
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY
-      const windowHeight = window.innerHeight
-      const newSection = Math.round(scrollPosition / windowHeight)
+      const vh = window.visualViewport?.height || window.innerHeight || window.screen.height
+      const newSection = Math.round(scrollPosition / vh)
       setCurrentSection(Math.min(newSection, 3))
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    window.addEventListener('resize', handleScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+    }
   }, [])
 
   const scrollToSection = useCallback((section: number) => {
+    // Используем visualViewport для iOS, fallback для старых браузеров
+    const vh = window.visualViewport?.height || window.innerHeight || window.screen.height
     window.scrollTo({
-      top: section * window.innerHeight,
+      top: section * vh,
       behavior: 'smooth'
     })
   }, [])

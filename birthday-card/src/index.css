@@ -7,12 +7,15 @@
 html {
   overflow-y: auto;
   overflow-x: hidden;
-  height: auto;
+  height: 100%;
+  /* iOS Safari fix */
+  height: 100dvh;
 }
 
 body {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100%;
+  min-height: 100dvh;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -23,11 +26,14 @@ body {
   background-attachment: fixed;
   background-size: 200% 200%;
   animation: gradient-shift 15s ease infinite;
+  /* iOS Safari fix */
+  min-height: -webkit-fill-available;
 }
 
 #root {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100%;
+  min-height: 100dvh;
 }
 
 @keyframes gradient-shift {
@@ -49,6 +55,11 @@ body {
 /* Safe area для iPhone с Dynamic Island */
 @supports (padding: max(0px)) {
   html {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  body {
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
   }
