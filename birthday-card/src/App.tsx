@@ -184,7 +184,7 @@ function HeroSection({ onNext }: { onNext: () => void }) {
         </FadeIn>
         
         <FadeIn delay={0.2}>
-          <p className="hero-subtitle">Моя любимая Юлианночка ❤️</p>
+          <p className="hero-subtitle">Моя дорогая Юлианночка ❤️</p>
         </FadeIn>
         
         <FadeIn delay={0.3}>

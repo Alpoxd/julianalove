@@ -3,6 +3,7 @@
   min-height: 400vh;
   position: relative;
   width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Секции */
@@ -16,8 +17,8 @@
   padding: 2rem 1rem;
   padding-bottom: 4rem;
   position: relative;
-  overflow: hidden;
   box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Floating Hearts - фиксированный фон на всю страницу */
@@ -634,13 +635,3 @@
   }
 }
 
-/* Анимации для iOS */
-@supports (-webkit-touch-callout: none) {
-  .section {
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .chat-container {
-    -webkit-overflow-scrolling: touch;
-  }
-}

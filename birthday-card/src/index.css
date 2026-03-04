@@ -5,38 +5,27 @@
 }
 
 html {
-  overflow-y: auto;
-  overflow-x: hidden;
-  height: auto;
+  height: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 body {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100%;
+  height: 100%;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: linear-gradient(135deg, #fff0f3 0%, #ffe4e9 30%, #ffeef2 60%, #fff5f8 100%);
-  background-attachment: fixed;
-  background-size: 200% 200%;
-  animation: gradient-shift 15s ease infinite;
 }
 
 #root {
   width: 100%;
-  min-height: 100vh;
-}
-
-@keyframes gradient-shift {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
+  min-height: 100%;
 }
 
 /* Скрытие скроллбара */
@@ -48,7 +37,7 @@ body {
 
 /* Safe area для iPhone с Dynamic Island */
 @supports (padding: max(0px)) {
-  html {
+  html, body {
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
   }
