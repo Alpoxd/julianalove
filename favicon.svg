@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff69b4"/>
+      <stop offset="50%" style="stop-color:#ff1493"/>
+      <stop offset="100%" style="stop-color:#ff69b4"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Сердечко -->
+  <path 
+    fill="url(#heartGrad)" 
+    filter="url(#glow)"
+    d="M50 88.5L22.5 61C10.5 49 10.5 30 22.5 18S49 10 50 10s27.5 8 27.5 20-12 29-24.5 41L50 88.5z"
+  />
+  <!-- Блик -->
+  <path 
+    fill="white" 
+    opacity="0.4"
+    d="M30 30C30 30 35 22 45 22C50 22 52 28 50 35C48 42 40 45 35 40C30 35 30 30 30 30z"
+  />
+</svg>
