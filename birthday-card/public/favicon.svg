@@ -2,7 +2,8 @@
   <defs>
     <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#ff69b4"/>
-      <stop offset="100%" style="stop-color:#ff1493"/>
+      <stop offset="50%" style="stop-color:#ff1493"/>
+      <stop offset="100%" style="stop-color:#ff69b4"/>
     </linearGradient>
     <filter id="glow">
       <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -12,21 +13,16 @@
       </feMerge>
     </filter>
   </defs>
-  
-  <!-- Background circle -->
-  <circle cx="50" cy="50" r="45" fill="#fff0f3" stroke="url(#heartGrad)" stroke-width="3"/>
-  
-  <!-- Heart -->
+  <!-- Сердечко -->
   <path 
-    d="M50 75 
-       C20 55, 10 35, 25 22 
-       C35 14, 45 18, 50 28 
-       C55 18, 65 14, 75 22 
-       C90 35, 80 55, 50 75Z" 
     fill="url(#heartGrad)" 
     filter="url(#glow)"
+    d="M50 88.5L22.5 61C10.5 49 10.5 30 22.5 18S49 10 50 10s27.5 8 27.5 20-12 29-24.5 41L50 88.5z"
   />
-  
-  <!-- Shine on heart -->
-  <ellipse cx="35" cy="32" rx="6" ry="4" fill="white" opacity="0.4" transform="rotate(-30 35 32)"/>
+  <!-- Блик -->
+  <path 
+    fill="white" 
+    opacity="0.4"
+    d="M30 30C30 30 35 22 45 22C50 22 52 28 50 35C48 42 40 45 35 40C30 35 30 30 30 30z"
+  />
 </svg>

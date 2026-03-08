@@ -3,6 +3,7 @@
   min-height: 400vh;
   position: relative;
   width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Секции */
@@ -17,10 +18,8 @@
   padding: 2rem 1rem;
   padding-bottom: 4rem;
   position: relative;
-  overflow: hidden;
   box-sizing: border-box;
-  /* iOS Safari */
-  min-height: -webkit-fill-available;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Floating Hearts - фиксированный фон на всю страницу */
@@ -304,7 +303,7 @@
   justify-content: center;
   gap: 8px;
   margin-top: 1rem;
-  width: 100%;
+  justify-content: center;
 }
 
 .carousel-dot {
@@ -648,13 +647,3 @@
   }
 }
 
-/* Анимации для iOS */
-@supports (-webkit-touch-callout: none) {
-  .section {
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .chat-container {
-    -webkit-overflow-scrolling: touch;
-  }
-}
