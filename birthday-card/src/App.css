@@ -1,25 +1,31 @@
 /* Главный контейнер */
 .app {
-  min-height: 400vh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
   position: relative;
   width: 100%;
-  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
 }
 
 /* Секции */
 .section {
-  min-height: 100dvh;
-  min-height: 100vh;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
-  padding-bottom: 4rem;
+  padding-bottom: max(4rem, env(safe-area-inset-bottom, 0));
+  padding-top: max(2rem, env(safe-area-inset-top, 0));
   position: relative;
   box-sizing: border-box;
-  -webkit-overflow-scrolling: touch;
+  /* Стабильная высота для iOS */
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  /* Предотвращаем проблемы с overflow */
+  overflow: visible;
 }
 
 /* Floating Hearts - фиксированный фон на всю страницу */
@@ -27,11 +33,14 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   pointer-events: none;
   overflow: hidden;
   z-index: 0;
+  /* iOS Safari fix */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .floating-heart {
@@ -458,12 +467,16 @@
 .progress-indicator {
   position: fixed;
   right: 0.75rem;
+  right: calc(0.75rem + env(safe-area-inset-right, 0));
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   z-index: 100;
+  /* iOS Safari fix */
+  -webkit-transform: translateY(-50%) translateZ(0);
+  transform: translateY(-50%) translateZ(0);
 }
 
 .progress-dot {
@@ -563,9 +576,10 @@
 @media (max-width: 480px) {
   .section {
     padding: 1rem 0.75rem;
-    padding-left: max(0.75rem, env(safe-area-inset-left));
-    padding-right: max(0.75rem, env(safe-area-inset-right));
-    padding-bottom: max(4rem, env(safe-area-inset-bottom));
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0));
+    padding-bottom: max(4rem, env(safe-area-inset-bottom, 0));
+    padding-top: max(2rem, env(safe-area-inset-top, 0));
     min-height: 100dvh;
     min-height: -webkit-fill-available;
     height: auto;
@@ -573,8 +587,8 @@
   
   .hero-content {
     padding: 1rem;
-    padding-top: max(1rem, env(safe-area-inset-top));
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    padding-top: max(1rem, env(safe-area-inset-top, 0));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0));
   }
   
   .chat-container {
@@ -603,6 +617,7 @@
   
   .progress-indicator {
     right: 0.5rem;
+    right: calc(0.5rem + env(safe-area-inset-right, 0));
   }
   
   .progress-dot {
@@ -630,20 +645,5 @@
     width: 20px;
     height: 20px;
   }
+}
   
-  /* iPhone with Dynamic Island */
-  @supports (padding: max(0px)) {
-    .section {
-      padding-top: max(1rem, env(safe-area-inset-top));
-    }
-  }
-}
-
-/* Safe area для iPhone с Dynamic Island */
-@supports (padding: max(0px)) {
-  .hero-content {
-    padding-top: max(2rem, env(safe-area-inset-top));
-    padding-bottom: max(2rem, env(safe-area-inset-bottom));
-  }
-}
-

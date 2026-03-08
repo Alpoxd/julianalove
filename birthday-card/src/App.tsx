@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { motion, AnimatePresence, useScroll } from 'framer-motion'
+import { useState, useEffect, useCallback, useRef, forwardRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import { Heart, MessageCircle, Music, ChevronDown, Sparkles, Gift, Camera, ChevronLeft, ChevronRight } from 'lucide-react'
 import './App.css'
@@ -126,41 +126,50 @@ function FloatingHearts() {
   )
 }
 
-function HeroSection({ onNext }: { onNext: () => void }) {
+const HeroSection = forwardRef<HTMLElement, { onNext: () => void }>(function HeroSection({ onNext }, ref) {
   const confettiFired = useRef(false)
 
   useEffect(() => {
     if (confettiFired.current) return
     confettiFired.current = true
 
-    const duration = 3000
-    const end = Date.now() + duration
+    // iOS Safari fix - оборачиваем в try-catch
+    try {
+      const duration = 3000
+      const end = Date.now() + duration
 
-    const frame = () => {
-      confetti({
-        particleCount: 3,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: ['#ffb6c1', '#ffc0cb', '#ff69b4', '#ff1493']
-      })
-      confetti({
-        particleCount: 3,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: ['#ffb6c1', '#ffc0cb', '#ff69b4', '#ff1493']
-      })
+      const frame = () => {
+        try {
+          confetti({
+            particleCount: 3,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: ['#ffb6c1', '#ffc0cb', '#ff69b4', '#ff1493']
+          })
+          confetti({
+            particleCount: 3,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: ['#ffb6c1', '#ffc0cb', '#ff69b4', '#ff1493']
+          })
+        } catch (e) {
+          // Игнорируем ошибки confetti на iOS
+        }
 
-      if (Date.now() < end) {
-        requestAnimationFrame(frame)
+        if (Date.now() < end) {
+          requestAnimationFrame(frame)
+        }
       }
+      frame()
+    } catch (e) {
+      // Игнорируем ошибки инициализации confetti
     }
-    frame()
   }, [])
 
   return (
-    <section className="section hero-section">
+    <section ref={ref} className="section hero-section">
       <div className="hero-content">
         <FadeIn>
           <motion.div
@@ -213,11 +222,12 @@ function HeroSection({ onNext }: { onNext: () => void }) {
       </div>
     </section>
   )
-}
+})
 
-function ChatSection() {
+const ChatSection = forwardRef<HTMLElement>(function ChatSection(_, ref) {
   return (
     <motion.section 
+      ref={ref}
       className="section chat-section"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
@@ -267,9 +277,9 @@ function ChatSection() {
       </motion.div>
     </motion.section>
   )
-}
+})
 
-function PhotosSection() {
+const PhotosSection = forwardRef<HTMLElement>(function PhotosSection(_, ref) {
   const [currentPhoto, setCurrentPhoto] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const touchStartX = useRef(0)
@@ -297,7 +307,9 @@ function PhotosSection() {
     touchEndX.current = e.touches[0].clientX
   }
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    // Предотвращаем двойное срабатывание на iOS
+    e.preventDefault()
     const diff = touchStartX.current - touchEndX.current
     if (Math.abs(diff) > 50) {
       if (diff > 0) {
@@ -312,6 +324,7 @@ function PhotosSection() {
 
   return (
     <motion.section 
+      ref={ref}
       className="section photos-section"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
@@ -408,15 +421,16 @@ function PhotosSection() {
       </motion.p>
     </motion.section>
   )
-}
+})
 
 const VIDEO_SRC = 'https://www.youtube.com/embed/yRNXTUrlgeM?rel=0&modestbranding=1&playsinline=1'
 
-function VideoSection() {
+const VideoSection = forwardRef<HTMLElement>(function VideoSection(_, ref) {
   const [showVideo, setShowVideo] = useState(false)
 
   return (
     <motion.section 
+      ref={ref}
       className="section video-section"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
@@ -548,7 +562,7 @@ function VideoSection() {
       </motion.div>
     </motion.section>
   )
-}
+})
 
 interface NDEFReader {
   scan(): Promise<void>
@@ -556,40 +570,13 @@ interface NDEFReader {
 }
 
 function NFCPrompt({ onComplete }: { onComplete: () => void }) {
-  const [scanned, setScanned] = useState(false)
-
   useEffect(() => {
-    // Проверка на iOS - NFC не поддерживается
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    // Увеличиваем таймер для стабильности на iOS
+    const timer = setTimeout(() => {
+      onComplete()
+    }, 2000)
     
-    // Если iOS или нет поддержки NFC - сразу показываем контент
-    if (isIOS || !('NDEFReader' in window)) {
-      setTimeout(onComplete, 800)
-      return
-    }
-
-    // Попытка сканирования NFC (только для Android)
-    const ndef = new (window as unknown as { NDEFReader: new () => NDEFReader }).NDEFReader()
-    
-    ndef.scan().then(() => {
-      ndef.onreading = () => {
-        setScanned(true)
-        setTimeout(onComplete, 1500)
-      }
-    }).catch(() => {
-      // NFC недоступен - показываем контент
-      setTimeout(onComplete, 1000)
-    })
-    
-    // Fallback таймаут на случай зависания
-    const fallbackTimer = setTimeout(() => {
-      if (!scanned) {
-        onComplete()
-      }
-    }, 5000)
-    
-    return () => clearTimeout(fallbackTimer)
+    return () => clearTimeout(timer)
   }, [onComplete])
 
   return (
@@ -597,14 +584,14 @@ function NFCPrompt({ onComplete }: { onComplete: () => void }) {
       className="nfc-prompt"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.1 }}
+      transition={{ duration: 0.5 }}
     >
       <motion.div
         animate={{ 
-          scale: [1, 1.2, 1],
-          rotate: [0, 10, -10, 0]
+          scale: [1, 1.1, 1],
+          rotate: [0, 5, -5, 0]
         }}
-        transition={{ duration: 2, repeat: Infinity }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
       >
         <Gift size={80} color="#ff1493" />
       </motion.div>
@@ -614,28 +601,17 @@ function NFCPrompt({ onComplete }: { onComplete: () => void }) {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
-        {scanned ? 'Отлично!' : 'Поднеси телефон к NFC метке'}
+        Сюрприз для тебя! 🎁
       </motion.h2>
       
       <motion.p
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5 }}
+        style={{ marginTop: '1rem', color: '#666' }}
       >
+        Листай вниз...
       </motion.p>
-      
-      {!scanned && (
-        <motion.div
-          className="nfc-animation"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-        >
-          <div className="nfc-ring" />
-          <div className="nfc-ring delay-1" />
-          <div className="nfc-ring delay-2" />
-        </motion.div>
-      )}
     </motion.div>
   )
 }
@@ -643,36 +619,60 @@ function NFCPrompt({ onComplete }: { onComplete: () => void }) {
 export default function App() {
   const [currentSection, setCurrentSection] = useState(0)
   const [started, setStarted] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
+  
+  const sectionRefs = useRef<(HTMLElement | null)[]>([])
 
-  useScroll({
-    target: containerRef,
-    offset: ['start start', 'end end']
-  })
+  // Установка refs для секций
+  const setSectionRef = (index: number) => (el: HTMLElement | null) => {
+    sectionRefs.current[index] = el
+  }
 
+  // Отслеживание видимой секции через IntersectionObserver
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY
-      const vh = window.visualViewport?.height || window.innerHeight || window.screen.height
-      const newSection = Math.round(scrollPosition / vh)
-      setCurrentSection(Math.min(newSection, 3))
-    }
+    // Задержка для стабилизации на iOS
+    const initTimer = setTimeout(() => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
+              const index = sectionRefs.current.indexOf(entry.target as HTMLElement)
+              if (index !== -1) {
+                setCurrentSection(index)
+              }
+            }
+          })
+        },
+        {
+          threshold: [0.3, 0.5, 0.7],
+          rootMargin: '-10% 0px -10% 0px'
+        }
+      )
 
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('resize', handleScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('resize', handleScroll)
-    }
-  }, [])
+      sectionRefs.current.forEach((ref) => {
+        if (ref) observer.observe(ref)
+      })
+
+      return () => observer.disconnect()
+    }, 200)
+
+    return () => clearTimeout(initTimer)
+  }, [started])
 
   const scrollToSection = useCallback((section: number) => {
-    // Используем visualViewport для iOS, fallback для старых браузеров
-    const vh = window.visualViewport?.height || window.innerHeight || window.screen.height
-    window.scrollTo({
-      top: section * vh,
-      behavior: 'smooth'
-    })
+    const targetRef = sectionRefs.current[section]
+    if (targetRef) {
+      // scrollIntoView с fallback на scrollTo для iOS
+      try {
+        targetRef.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } catch (e) {
+        // Fallback для iOS Safari
+        const targetTop = targetRef.offsetTop
+        window.scrollTo({
+          top: targetTop,
+          behavior: 'smooth'
+        })
+      }
+    }
   }, [])
 
   if (!started) {
@@ -684,13 +684,16 @@ export default function App() {
   }
 
   return (
-    <div className="app" ref={containerRef}>
+    <div className="app">
       <FloatingHearts />
       
-      <HeroSection onNext={() => scrollToSection(1)} />
-      <ChatSection />
-      <PhotosSection />
-      <VideoSection />
+      <HeroSection 
+        ref={setSectionRef(0)}
+        onNext={() => scrollToSection(1)} 
+      />
+      <ChatSection ref={setSectionRef(1)} />
+      <PhotosSection ref={setSectionRef(2)} />
+      <VideoSection ref={setSectionRef(3)} />
       
       <div className="progress-indicator">
         {[0, 1, 2, 3].map((section) => (
